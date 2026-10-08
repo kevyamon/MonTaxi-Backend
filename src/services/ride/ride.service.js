@@ -1,6 +1,7 @@
 const Ride = require('../../models/Ride.model');
 const Driver = require('../../models/Driver.model');
-const { RIDE_STATUS } = require('../../constants/ride.constants');
+const { RIDE_STATUS, RIDE_TIERS } = require('../../constants/ride.constants');
+const { checkLocationCoverage } = require('../../constants/zones.constants');
 const { calculateDistanceKm, estimateDurationMin, calculateFare } = require('../geo/geo.service');
 const { dispatchRide } = require('../dispatch/dispatch.service');
 const { notifyUser } = require('../notification/notification.service');
@@ -8,6 +9,14 @@ const { getIO } = require('../../sockets/socket.server');
 
 const createRide = async (passengerId, data) => {
   const { pickupLocation, dropoffLocation, tier, paymentMethod } = data;
+
+  const [pickupLon, pickupLat] = pickupLocation.coordinates;
+  const coverage = checkLocationCoverage(pickupLat, pickupLon);
+  if (!coverage.isInCoverage) {
+    const error = new Error('Votre position actuelle se situe en dehors de la zone d’activité de MonTaxi.');
+    error.statusCode = 400;
+    throw error;
+  }
 
   const distanceKm = calculateDistanceKm(
     pickupLocation.coordinates,

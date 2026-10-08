@@ -29,25 +29,40 @@ const estimateDurationMin = (distanceKm) => {
   return Math.max(5, Math.round(duration)); // Minimum 5 minutes
 };
 
-// Calcul du montant de la course selon le forfait
+// Calcul du montant de la course selon le forfait avec plafonds stricts
 const calculateFare = (distanceKm, durationMin, tier = RIDE_TIERS.ECO) => {
   const isVip = tier === RIDE_TIERS.VIP;
 
-  // Grille tarifaire paramétrable
-  const basePrice = isVip ? 1000 : 500; // Prise en charge FCFA
-  const pricePerKm = isVip ? 450 : 250; // FCFA par km
-  const pricePerMin = isVip ? 50 : 30; // FCFA par min
+  // Grille tarifaire Sud-Comoé (Bonoua, Aboisso, Adiaké)
+  if (isVip) {
+    const basePrice = 700; // Prise en charge jusqu'à 1 km
+    const pricePerKm = 300; // FCFA par km supplémentaire
+    const extraDistance = Math.max(0, distanceKm - 1);
+    const calculated = basePrice + extraDistance * pricePerKm;
+    const capped = Math.min(1500, Math.max(basePrice, calculated));
+    const totalPrice = Math.ceil(capped / 100) * 100;
 
-  const calculatedTotal = basePrice + distanceKm * pricePerKm + durationMin * pricePerMin;
+    return {
+      basePrice,
+      distanceKm,
+      durationMin,
+      totalPrice: Math.min(1500, totalPrice)
+    };
+  }
 
-  // Arrondi aux 100 FCFA supérieurs
-  const totalPrice = Math.ceil(calculatedTotal / 100) * 100;
+  // Forfait Éco (Taxi Partagé)
+  const basePrice = 300; // Prise en charge jusqu'à 1 km
+  const pricePerKm = 150; // FCFA par km supplémentaire
+  const extraDistance = Math.max(0, distanceKm - 1);
+  const calculated = basePrice + extraDistance * pricePerKm;
+  const capped = Math.min(700, Math.max(basePrice, calculated));
+  const totalPrice = Math.ceil(capped / 50) * 50;
 
   return {
     basePrice,
     distanceKm,
     durationMin,
-    totalPrice: Math.max(basePrice, totalPrice)
+    totalPrice: Math.min(700, totalPrice)
   };
 };
 
