@@ -15,7 +15,7 @@ const globalErrorHandler = (err, req, res, next) => {
 
   if (err.name === 'ZodError') {
     statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
-    message = 'Données de requête invalides';
+    message = err.errors?.[0]?.message || 'Données de requête invalides';
     errors = err.errors.map((e) => ({
       field: e.path.join('.'),
       message: e.message
