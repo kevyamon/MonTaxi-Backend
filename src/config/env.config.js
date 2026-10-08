@@ -8,6 +8,7 @@ const envConfig = {
   isProduction: process.env.NODE_ENV === 'production',
   clientUrl: process.env.CLIENT_URL || '*',
   mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/montaxi_db',
+  redisUrl: process.env.REDIS_URL || '',
   redis: {
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),

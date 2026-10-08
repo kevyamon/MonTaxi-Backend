@@ -4,10 +4,7 @@ const envConfig = require('./env.config');
 let redisClient = null;
 
 try {
-  redisClient = new Redis({
-    host: envConfig.redis.host,
-    port: envConfig.redis.port,
-    password: envConfig.redis.password,
+  const redisOptions = {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     retryStrategy: (times) => {
@@ -18,7 +15,18 @@ try {
       return Math.min(times * 1000, 3000);
     },
     lazyConnect: true
-  });
+  };
+
+  if (envConfig.redisUrl) {
+    redisClient = new Redis(envConfig.redisUrl, redisOptions);
+  } else {
+    redisClient = new Redis({
+      host: envConfig.redis.host,
+      port: envConfig.redis.port,
+      password: envConfig.redis.password,
+      ...redisOptions
+    });
+  }
 
   redisClient.on('connect', () => {
     console.log('[Redis] Connexion établie');
