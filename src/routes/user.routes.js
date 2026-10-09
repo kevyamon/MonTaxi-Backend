@@ -14,6 +14,7 @@ router.delete('/account', userController.deleteAccount);
 
 router.get('/notifications', userController.getNotifications);
 router.patch('/notifications/read-all', userController.markAllNotificationsAsRead);
+router.patch('/notifications/:id/archive', userController.archiveNotification);
 router.delete('/notifications/:id', userController.deleteNotification);
 
 module.exports = router;

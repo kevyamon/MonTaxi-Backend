@@ -165,6 +165,44 @@ const getRideHistory = async (req, res, next) => {
   }
 };
 
+const deleteRide = async (req, res, next) => {
+  try {
+    const isDriver = req.user.role === 'driver';
+    const filter = isDriver
+      ? { _id: req.params.id, driver: req.user.userId }
+      : { _id: req.params.id, passenger: req.user.userId };
+
+    await Ride.findOneAndDelete(filter);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Course définitivement supprimée de votre historique.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const archiveRide = async (req, res, next) => {
+  try {
+    const isDriver = req.user.role === 'driver';
+    const filter = isDriver
+      ? { _id: req.params.id, driver: req.user.userId }
+      : { _id: req.params.id, passenger: req.user.userId };
+
+    const update = isDriver ? { isArchivedByDriver: true } : { isArchivedByPassenger: true };
+
+    await Ride.findOneAndUpdate(filter, update);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Course archivée avec succès.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   estimateRide,
   requestRide,
@@ -174,5 +212,7 @@ module.exports = {
   completeRide,
   cancelRide,
   getRideDetails,
-  getRideHistory
+  getRideHistory,
+  deleteRide,
+  archiveRide
 };

@@ -140,11 +140,28 @@ const deleteNotification = async (req, res, next) => {
   }
 };
 
+const archiveNotification = async (req, res, next) => {
+  try {
+    await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.userId },
+      { isArchived: true, isRead: true }
+    );
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Notification archivée avec succès.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   deleteAccount,
   getNotifications,
   markAllNotificationsAsRead,
-  deleteNotification
+  deleteNotification,
+  archiveNotification
 };
