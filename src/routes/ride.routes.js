@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+router.post('/estimate', rideController.estimateRide);
 router.post('/', validateRequest(createRideSchema), rideController.requestRide);
 router.get('/history', rideController.getRideHistory);
 router.get('/:id', rideController.getRideDetails);

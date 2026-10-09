@@ -1,6 +1,34 @@
 const rideService = require('../services/ride/ride.service');
 const Ride = require('../models/Ride.model');
 const HTTP_STATUS = require('../constants/httpStatus.constants');
+const { calculateDistanceKm, estimateDurationMin, calculateFare } = require('../services/geo/geo.service');
+
+const estimateRide = async (req, res, next) => {
+  try {
+    const { pickupCoordinates, dropoffCoordinates, distanceKm: customDist } = req.body;
+    let distanceKm = customDist || 2.5;
+    if (pickupCoordinates && dropoffCoordinates) {
+      distanceKm = calculateDistanceKm(pickupCoordinates, dropoffCoordinates);
+    }
+    const durationMin = estimateDurationMin(distanceKm);
+    const ecoFare = calculateFare(distanceKm, durationMin, 'eco');
+    const vipFare = calculateFare(distanceKm, durationMin, 'vip');
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: {
+        distanceKm,
+        durationMin,
+        fares: {
+          eco: ecoFare.totalPrice,
+          vip: vipFare.totalPrice
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const requestRide = async (req, res, next) => {
   try {
@@ -138,6 +166,7 @@ const getRideHistory = async (req, res, next) => {
 };
 
 module.exports = {
+  estimateRide,
   requestRide,
   acceptRide,
   notifyArrived,
