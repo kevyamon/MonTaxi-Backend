@@ -50,6 +50,11 @@ const driverSchema = new mongoose.Schema(
     totalRides: {
       type: Number,
       default: 0
+    },
+    documents: {
+      driverLicenseUrl: { type: String, default: null },
+      idCardUrl: { type: String, default: null },
+      vehicleRegistrationUrl: { type: String, default: null }
     }
   },
   {
