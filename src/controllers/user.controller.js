@@ -84,14 +84,15 @@ const getNotifications = async (req, res, next) => {
     const page = parseInt(req.query.page || '1', 10);
     const limit = parseInt(req.query.limit || '20', 10);
     const skip = (page - 1) * limit;
+    const isArchived = req.query.archived === 'true';
 
     const [notifications, total, unreadCount] = await Promise.all([
-      Notification.find({ recipient: req.user.userId, isArchived: false })
+      Notification.find({ recipient: req.user.userId, isArchived })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      Notification.countDocuments({ recipient: req.user.userId, isArchived: false }),
+      Notification.countDocuments({ recipient: req.user.userId, isArchived }),
       getUnreadCount(req.user.userId)
     ]);
 
@@ -156,6 +157,22 @@ const archiveNotification = async (req, res, next) => {
   }
 };
 
+const unarchiveNotification = async (req, res, next) => {
+  try {
+    await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: req.user.userId },
+      { isArchived: false }
+    );
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Notification restaurée depuis les archives.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -163,5 +180,6 @@ module.exports = {
   getNotifications,
   markAllNotificationsAsRead,
   deleteNotification,
-  archiveNotification
+  archiveNotification,
+  unarchiveNotification
 };

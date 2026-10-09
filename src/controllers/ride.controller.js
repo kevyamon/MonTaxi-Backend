@@ -139,9 +139,11 @@ const getRideHistory = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const isDriver = req.user.role === 'driver';
+    const isArchived = req.query.archived === 'true';
+
     const filter = isDriver
-      ? { driver: req.user.userId, isArchivedByDriver: false }
-      : { passenger: req.user.userId, isArchivedByPassenger: false };
+      ? { driver: req.user.userId, isArchivedByDriver: isArchived }
+      : { passenger: req.user.userId, isArchivedByPassenger: isArchived };
 
     const [rides, total] = await Promise.all([
       Ride.find(filter)
@@ -203,6 +205,26 @@ const archiveRide = async (req, res, next) => {
   }
 };
 
+const unarchiveRide = async (req, res, next) => {
+  try {
+    const isDriver = req.user.role === 'driver';
+    const filter = isDriver
+      ? { _id: req.params.id, driver: req.user.userId }
+      : { _id: req.params.id, passenger: req.user.userId };
+
+    const update = isDriver ? { isArchivedByDriver: false } : { isArchivedByPassenger: false };
+
+    await Ride.findOneAndUpdate(filter, update);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Course restaurée depuis les archives.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   estimateRide,
   requestRide,
@@ -214,5 +236,6 @@ module.exports = {
   getRideDetails,
   getRideHistory,
   deleteRide,
-  archiveRide
+  archiveRide,
+  unarchiveRide
 };

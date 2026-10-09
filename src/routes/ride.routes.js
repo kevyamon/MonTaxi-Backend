@@ -15,6 +15,7 @@ router.get('/history', rideController.getRideHistory);
 router.get('/:id', rideController.getRideDetails);
 router.patch('/:id/cancel', validateRequest(cancelRideSchema), rideController.cancelRide);
 router.patch('/:id/archive', rideController.archiveRide);
+router.patch('/:id/unarchive', rideController.unarchiveRide);
 router.delete('/:id', rideController.deleteRide);
 
 // Routes réservées aux chauffeurs

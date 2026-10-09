@@ -86,6 +86,7 @@ const rideSchema = new mongoose.Schema(
   }
 );
 
+rideSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 24 * 60 * 60 });
 rideSchema.index({ createdAt: -1 });
 
 const Ride = mongoose.model('Ride', rideSchema);

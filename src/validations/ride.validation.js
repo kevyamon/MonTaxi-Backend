@@ -18,15 +18,16 @@ const createRideSchema = {
     }),
     fare: z
       .object({
-        basePrice: z.number().min(0),
-        distanceKm: z.number().min(0),
-        durationMin: z.number().min(0),
-        totalPrice: z.number().min(0)
+        basePrice: z.number().optional().default(300),
+        distanceKm: z.number().optional(),
+        durationMin: z.number().optional(),
+        totalPrice: z.number().optional()
       })
       .optional(),
     paymentMethod: z
       .enum([PAYMENT_METHODS.CASH, PAYMENT_METHODS.WAVE])
       .default(PAYMENT_METHODS.CASH)
+      .optional()
   })
 };
 
