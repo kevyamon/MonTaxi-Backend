@@ -3,6 +3,7 @@ const Ride = require('../../models/Ride.model');
 const { getIO } = require('../../sockets/socket.server');
 const { notifyUser } = require('../notification/notification.service');
 const { RIDE_STATUS } = require('../../constants/ride.constants');
+const { checkLocationCoverage } = require('../../constants/zones.constants');
 
 const findNearbyDrivers = async (coordinates, maxDistanceMeters = 3000) => {
   const [longitude, latitude] = coordinates;
@@ -23,7 +24,14 @@ const findNearbyDrivers = async (coordinates, maxDistanceMeters = 3000) => {
     .populate('user', 'fullName phone rating avatarUrl')
     .lean();
 
-  return drivers;
+  // Filtrage strict : seuls les chauffeurs situés dans les zones d’activité autorisées
+  return drivers.filter((driver) => {
+    const driverCoords = driver?.currentLocation?.coordinates;
+    if (!driverCoords || driverCoords.length < 2) return false;
+    const [driverLon, driverLat] = driverCoords;
+    const coverage = checkLocationCoverage(driverLat, driverLon);
+    return coverage.isInCoverage;
+  });
 };
 
 const dispatchRide = async (rideId) => {

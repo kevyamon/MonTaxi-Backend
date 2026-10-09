@@ -64,6 +64,14 @@ const acceptRide = async (driverUserId, rideId) => {
     throw error;
   }
 
+  const [driverLon, driverLat] = driver.currentLocation?.coordinates || [];
+  const driverCoverage = checkLocationCoverage(driverLat, driverLon);
+  if (!driverCoverage.isInCoverage) {
+    const error = new Error('Vous devez être positionné dans une zone desservie par MonTaxi pour accepter une course.');
+    error.statusCode = 400;
+    throw error;
+  }
+
   ride.driver = driverUserId;
   ride.status = RIDE_STATUS.ACCEPTED;
   ride.acceptedAt = new Date();

@@ -1,4 +1,4 @@
-const streamifier = require('streamifier');
+const { Readable } = require('stream');
 const cloudinary = require('../../config/cloudinary.config');
 
 /**
@@ -36,11 +36,7 @@ const uploadBuffer = (buffer, options = {}) => {
       }
     );
 
-    // Si streamifier n'est pas installé, on peut utiliser un Readable stream natif de Node.js
-    const { Readable } = require('stream');
-    const readableStream = new Readable();
-    readableStream.push(buffer);
-    readableStream.push(null);
+    const readableStream = Readable.from(buffer);
     readableStream.pipe(uploadStream);
   });
 };
@@ -65,7 +61,7 @@ const uploadAvatar = async (buffer, userId) => {
  * Téléverse un document officiel (permis, carte grise, etc.)
  * @param {Buffer} buffer - Buffer de l'image
  * @param {string} driverId - Identifiant du chauffeur
- * @param {string} docType - Type de document (license, insurance, id_card)
+ * @param {string} docType - Type de document (driverLicense, idCard, vehicleRegistration)
  */
 const uploadDriverDocument = async (buffer, driverId, docType) => {
   return uploadBuffer(buffer, {
