@@ -25,13 +25,23 @@ const findNearbyDrivers = async (coordinates, maxDistanceMeters = 3000) => {
     .lean();
 
   // Filtrage strict : seuls les chauffeurs situés dans les zones d’activité autorisées
-  return drivers.filter((driver) => {
+  const validDrivers = [];
+  for (const driver of drivers) {
     const driverCoords = driver?.currentLocation?.coordinates;
-    if (!driverCoords || driverCoords.length < 2) return false;
+    if (!driverCoords || driverCoords.length < 2) continue;
     const [driverLon, driverLat] = driverCoords;
     const coverage = checkLocationCoverage(driverLat, driverLon);
-    return coverage.isInCoverage;
-  });
+
+    if (!coverage.isInCoverage) {
+      // Sécurité : si un chauffeur est localisé hors zone, désactivation automatique
+      Driver.findByIdAndUpdate(driver._id, { isOnline: false }).exec();
+      continue;
+    }
+
+    validDrivers.push(driver);
+  }
+
+  return validDrivers;
 };
 
 const dispatchRide = async (rideId) => {

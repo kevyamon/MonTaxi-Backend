@@ -15,7 +15,7 @@ const uploadAvatar = async (req, res, next) => {
       });
     }
 
-    const userId = req.user._id;
+    const userId = req.user.userId || req.user._id || req.user.id;
     const result = await uploadService.uploadAvatar(req.file.buffer, userId);
 
     // Mise à jour de l'avatar dans le document User
@@ -62,7 +62,8 @@ const uploadDriverDocument = async (req, res, next) => {
       });
     }
 
-    const driver = await Driver.findOne({ user: req.user._id });
+    const userId = req.user.userId || req.user._id || req.user.id;
+    const driver = await Driver.findOne({ user: userId });
     if (!driver) {
       return res.status(404).json({
         success: false,
