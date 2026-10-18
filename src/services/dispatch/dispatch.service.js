@@ -86,6 +86,15 @@ const dispatchRide = async (rideId) => {
           rideId: ride._id,
           message: 'Aucun chauffeur disponible pour le moment. Vous pouvez relancer la recherche.'
         });
+
+        // Notification push passager si l'application est en arrière-plan
+        await notifyUser({
+          userId: ride.passenger._id,
+          title: '⏳ Aucun chauffeur disponible',
+          message: 'Tous nos chauffeurs sont actuellement occupés. Vous pouvez relancer votre recherche.',
+          type: 'ride_update',
+          data: { rideId: ride._id, status: 'timeout' }
+        });
       }
       return;
     }
@@ -106,9 +115,9 @@ const dispatchRide = async (rideId) => {
       // Notification push chauffeur
       await notifyUser({
         userId: driver.user._id,
-        title: 'Nouvelle demande de course !',
-        message: `Course ${ride.tier.toUpperCase()} : ${ride.pickupLocation.address} -> ${ride.dropoffLocation.address}`,
-        type: 'ride_update',
+        title: '🚖 Nouvelle course disponible !',
+        message: `Course ${ride.tier.toUpperCase()} : ${ride.pickupLocation.address} -> ${ride.dropoffLocation.address} (${ride.fare?.totalPrice || 0} FCFA)`,
+        type: 'ride_request',
         data: { rideId: ride._id }
       });
     }

@@ -80,9 +80,10 @@ const updatePasswordSchema = {
 const updatePushTokenSchema = {
   body: z.object({
     expoPushToken: z
-      .string({ required_error: 'Le jeton Expo Push est obligatoire' })
+      .string()
       .trim()
-      .min(5, 'Jeton Expo Push invalide')
+      .nullable()
+      .optional()
   })
 };
 

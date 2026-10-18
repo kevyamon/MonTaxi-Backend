@@ -90,12 +90,18 @@ const acceptRide = async (driverUserId, rideId) => {
     driverLocation: driver.currentLocation.coordinates
   });
 
+  const vehicle = driver.vehicleInfo;
+  const vehicleDesc = vehicle?.brand
+    ? `${vehicle.brand} ${vehicle.model || ''} (${vehicle.licensePlate || ''})`.trim()
+    : 'MonTaxi';
+  const driverName = populatedRide.driver?.fullName || 'Votre chauffeur';
+
   await notifyUser({
     userId: ride.passenger,
-    title: 'Chauffeur trouvé !',
-    message: `Votre chauffeur est en route pour venir vous chercher.`,
+    title: '🚕 Chauffeur trouvé !',
+    message: `${driverName} a accepté votre course et arrive en ${vehicleDesc}.`,
     type: 'ride_update',
-    data: { rideId: ride._id }
+    data: { rideId: ride._id, status: 'accepted' }
   });
 
   return populatedRide;
@@ -118,10 +124,10 @@ const notifyDriverArrived = async (driverUserId, rideId) => {
 
   await notifyUser({
     userId: ride.passenger,
-    title: 'Chauffeur arrivé !',
-    message: 'Votre taxi est sur place. Veuillez monter à bord.',
+    title: '📍 Chauffeur arrivé sur place !',
+    message: `Votre taxi vous attend à : ${ride.pickupLocation.address}. Veuillez monter à bord.`,
     type: 'ride_update',
-    data: { rideId: ride._id }
+    data: { rideId: ride._id, status: 'driver_arriving' }
   });
 
   return ride;
@@ -144,10 +150,10 @@ const startRide = async (driverUserId, rideId) => {
 
   await notifyUser({
     userId: ride.passenger,
-    title: 'Course en cours',
-    message: 'Bonne route avec MonTaxi ! Destination en cours d’acheminement.',
+    title: '🚀 Course en cours',
+    message: `En route vers ${ride.dropoffLocation.address}. Bonne route avec MonTaxi !`,
     type: 'ride_update',
-    data: { rideId: ride._id }
+    data: { rideId: ride._id, status: 'in_progress' }
   });
 
   return ride;
@@ -179,10 +185,10 @@ const completeRide = async (driverUserId, rideId) => {
 
   await notifyUser({
     userId: ride.passenger,
-    title: 'Destination atteinte !',
+    title: '🏁 Destination atteinte !',
     message: `Merci d’avoir utilisé MonTaxi. Montant à régler : ${ride.fare.totalPrice} FCFA.`,
     type: 'ride_update',
-    data: { rideId: ride._id, fare: ride.fare }
+    data: { rideId: ride._id, fare: ride.fare, status: 'completed' }
   });
 
   return ride;
@@ -217,6 +223,25 @@ const cancelRide = async (userId, rideId, reason = 'Annulé') => {
 
   const io = getIO();
   io.to(`ride:${ride._id}`).emit('ride:cancelled', { rideId: ride._id, reason });
+
+  // Notifications push d'annulation réciproque
+  if (isPassenger && ride.driver) {
+    await notifyUser({
+      userId: ride.driver,
+      title: '⚠️ Course annulée',
+      message: 'Le passager a annulé la course. Vous êtes de nouveau disponible sur le réseau.',
+      type: 'ride_update',
+      data: { rideId: ride._id, status: 'cancelled' }
+    });
+  } else if (isDriver) {
+    await notifyUser({
+      userId: ride.passenger,
+      title: '⚠️ Course annulée par le chauffeur',
+      message: 'Votre chauffeur a dû annuler sa venue. Nous vous invitons à relancer votre recherche.',
+      type: 'ride_update',
+      data: { rideId: ride._id, status: 'cancelled' }
+    });
+  }
 
   return ride;
 };
