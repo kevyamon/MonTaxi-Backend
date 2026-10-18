@@ -37,12 +37,14 @@ const userRoutes = require('./routes/user.routes');
 const rideRoutes = require('./routes/ride.routes');
 const driverRoutes = require('./routes/driver.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rides', rideRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Gestion des routes inexistantes et erreurs globales
 app.use(notFoundHandler);
